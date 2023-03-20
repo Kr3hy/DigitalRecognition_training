@@ -6,7 +6,7 @@ class GlobalConfig():
         self.__dataset_path = r"H:\ArmorId"
         self.__device = "cuda:0" if cuda.is_available() else "cpu"
         self.__model_name = "fc"
-        self.__classes_num = 5
+        self.__classes_num = 6
         self.__input_size = (20,28)
         self.__wid_mul=1
         self.__learn_rate=0.02

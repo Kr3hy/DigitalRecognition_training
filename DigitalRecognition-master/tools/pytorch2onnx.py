@@ -18,12 +18,12 @@ def convert_ONNX(model, param_dir, input_size:tuple):
     # model.load_state_dict()
     # model=torch.load(param_file)
     print(input_size)
-    print((3, *input_size))
+    # print((3, *input_size))
     model.eval()
     # dummy_input = torch.randn(1, (3, *input_size), requires_grad=True)
     # print(dummy_input)
     dummy_input = torch.randn((1,1,20,28), requires_grad=True) # the second is channels
-    print(dummy_input)
+    # print(dummy_input)
     torch.onnx.export(model,  # model_params being run
                       dummy_input,  # model_params input (or a tuple for multiple inputs)
                       str(Path(param_dir) / (global_config.MODEL_NAME + ".onnx")),  # where to save the model_params
@@ -32,8 +32,9 @@ def convert_ONNX(model, param_dir, input_size:tuple):
                       do_constant_folding=True,  # whether to execute constant folding for optimization
                       input_names=['digitalInput'],  # the model_params's input names
                       output_names=['digitalOutput'],  # the model_params's output names
-                      dynamic_axes={'digitalInput': {0: 'batch_size'},  # variable length axes
-                                    'digitalOutput': {0: 'batch_size'}})
+                      # dynamic_axes={'digitalInput': {0: 'batch_size',1 : 'channels' , 2:'column', 3:'row'},  # variable length axes
+                      #               'digitalOutput': {0: 'batch_size',1 : 'channels' , 2:'column', 3:'row'}}
+                      )
     print(" ")
     print(f'Model {global_config.MODEL_NAME} has been converted to ONNX')
     return

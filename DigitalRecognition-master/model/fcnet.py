@@ -14,16 +14,21 @@ from torch.utils.data import DataLoader
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.resize=transforms.Resize([1,560])  #column , row
+        # self.resize=torch.Reshape()
+            # transforms.Resize([1,560])  #column , row
         self.layer1 = nn.Sequential(
+            # self.resize,
             # nn.Flatten(), #@Note: flatten causes learning bug (do not update precision)
-            nn.Linear(20*28,256),nn.ReLU()) # 1680# 560#??? not 560???  that s causes by channels problem
-        self.layer2 = nn.Sequential(nn.Linear(256, 84), nn.ReLU())
-        self.layer3 = nn.Sequential(nn.Linear(84,5),nn.Softmax())  # 最后一层接Softmax所以不需要ReLU激活
+            nn.Linear(in_features=20*28,out_features=256),nn.ReLU()) # 1680# 560#??? not 560???  that s causes by channels problem
+        self.layer2 = nn.Sequential(nn.Linear(in_features=256, out_features=84), nn.ReLU())
+        self.layer3 = nn.Sequential(nn.Linear(in_features=84,out_features=6)
+                                    # ,nn.Softmax(dim=0)
+                                    )  # 最后一层接Softmax所以不需要ReLU激活
         # self.layer4=nn.Sequential(nn.Linear(84,5),nn.Softmax())
 
     def forward(self, x):
-        x=self.resize(x)
+        # x = self.resize(x)
+        x=x.reshape(-1,560)
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
