@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from torch.nn import functional as F
 from config.global_config import global_config
 from data.data_argumentation import DataAugmentation
-
+#
 class NumberDataset(Dataset):
     def __init__(self, root_path, input_size: tuple, classes_num, phase="train", use_onehot=True, transform=None):
         self.root_path = root_path
@@ -18,7 +18,7 @@ class NumberDataset(Dataset):
         self.dataset_size, self.data_dict, self.choose_dict = self.compute_dataset_size(str(Path(self.root_path) / Path(self.phase)))
         self.classes_num = classes_num
         self.device = global_config.DEVICE
-        self.use_onehot = use_onehot
+        self.use_onehot = use_onehot,
         self.data_argumentation = DataAugmentation(['random_resized_crop', 'random_affine', 'random_noise'])    # TODO: 暂时这样写死
 
     def __len__(self):
@@ -69,17 +69,7 @@ class NumberDataset(Dataset):
         if type(img) == torch.Tensor:
             img = img.squeeze().numpy()
         padding_img=img
-        # r = min(self.input_size[0] / img.shape[0], self.input_size[1] / img.shape[1])
-        # width, height = int(img.shape[1] * r), int(img.shape[0] * r)
-        # resize_img = cv2.resize(
-        #     img,
-        #     (width, height),
-        #     interpolation=cv2.INTER_LINEAR,
-        # )
-        #
-        # padding_img = np.ones((*self.input_size, 1), dtype=resize_img.dtype) * 114
-        # padding_img[:resize_img.shape[0], :resize_img.shape[1], 0] = resize_img
-        padding_img = cv2.cvtColor(padding_img, cv2.COLOR_BGR2RGB, padding_img)
+        padding_img=cv2.resize(padding_img,(20,28)) # r c
         # cv2.imshow("padding",padding_img)
         # cv2.waitKey(10000)
         # padding_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)
@@ -88,11 +78,17 @@ class NumberDataset(Dataset):
 
     def __getitem__(self, item):
         img, label = self.get_img_and_label(item)
-        transforms = self.data_argumentation.get_data_argumentation_compose(img.shape)
+        # transforms = self.data_argumentation.get_data_argumentation_compose(img.shape)
         # transforms_img = transforms(img)
         padding_img = self.resize_and_padding_img(img)   # TODO: should resize use Tensor?
+        # if(self.phase=="test"):
+        #     cv2.imshow("test",padding_img)
+        #     cv2.waitKey(5)
+        # if(self.phase=="train"):
+        #     cv2.imshow("train",padding_img)
+        #     cv2.waitKey(5)
         padding_img = torch.from_numpy(padding_img)
-        padding_img=padding_img.permute(2, 0, 1)
+        # padding_img=padding_img.permute(2, 0, 1)
         # img=torch.from_numpy(img)
         if self.use_onehot:
             label = F.one_hot(torch.tensor(int(label)-1), num_classes=self.classes_num).to(self.device)
@@ -111,3 +107,4 @@ class NumberDataset(Dataset):
             else:
                 rec[cls] = 0.0
         return prec, rec
+

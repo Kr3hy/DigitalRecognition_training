@@ -80,13 +80,13 @@ class DataAugmentation:
         img_shape = self.Shape(*img_shape)
         transforms_compose = list()
         transforms_compose.append(T.ToTensor())
-        for method in self.methods:
-            if method == 'random_resized_crop':
-                transforms_compose.append(self._get_random_resized_crop(self.CROP_AREA, img_shape))
-            elif method == 'random_affine':
-                transforms_compose.append(self._get_random_affine(self.SHEAR_DEGREES))
-            elif method == 'random_noise':
-                transforms_compose.append(self._get_random_noise(self.WHITE_POINT_AREA))
+        # for method in self.methods:
+        #     if method == 'random_resized_crop':
+        #         transforms_compose.append(self._get_random_resized_crop(self.CROP_AREA, img_shape))
+        #     elif method == 'random_affine':
+        #         transforms_compose.append(self._get_random_affine(self.SHEAR_DEGREES))
+        #     elif method == 'random_noise':
+        #         transforms_compose.append(self._get_random_noise(self.WHITE_POINT_AREA))
         return T.Compose(transforms_compose)
 
     @staticmethod
