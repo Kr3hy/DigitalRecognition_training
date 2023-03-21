@@ -5,7 +5,7 @@ class GlobalConfig():
     def __init__(self):
         self.__dataset_path = r"H:\ArmorId"
         self.__device = "cuda:0" if cuda.is_available() else "cpu"
-        self.__model_name = "fc"
+        self.__model_name = "GDUT＿net_5"
         self.__classes_num = 6
         self.__input_size = (20,28)
         self.__wid_mul=1

@@ -63,8 +63,8 @@ def train(model, dataloader, test_dataloader, epoch, writer,g_precision,precisio
     if not model_save_path.is_dir():
         Path.mkdir(model_save_path)
     model_save_path = model_save_path / (global_config.MODEL_NAME + '.pt')
-    optim = SGD(model.parameters(), 0.09) #lr
-    # optim = Adam(model.parameters(),0.02)
+    # optim = SGD(model.parameters(), 0.2) #lr
+    optim = Adam(model.parameters(),0.008)
     epoch_loop = tqdm(range(epoch), total=epoch)
     train_count = 1  # 用于计算runtime_loss
     print(model_save_path)
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     test_dataset = NumberDataset(root_path, classes_num=global_config.CLASSES_NUM, input_size=global_config.INPUT_SIZE, phase="test")
     training_config = {
         "batch_size":8,
-        "epoch": 10
+        "epoch": 3
     }
     dataloader = DataLoader(dataset, training_config['batch_size'], True)
     test_dataloader = DataLoader(test_dataset, 1, True)

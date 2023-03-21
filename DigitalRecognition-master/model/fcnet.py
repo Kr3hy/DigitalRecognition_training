@@ -17,8 +17,6 @@ class Net(nn.Module):
         # self.resize=torch.Reshape()
             # transforms.Resize([1,560])  #column , row
         self.layer1 = nn.Sequential(
-            # self.resize,
-            # nn.Flatten(), #@Note: flatten causes learning bug (do not update precision)
             nn.Linear(in_features=20*28,out_features=256),nn.ReLU()) # 1680# 560#??? not 560???  that s causes by channels problem
         self.layer2 = nn.Sequential(nn.Linear(in_features=256, out_features=84), nn.ReLU())
         self.layer3 = nn.Sequential(nn.Linear(in_features=84,out_features=6)
@@ -27,7 +25,6 @@ class Net(nn.Module):
         # self.layer4=nn.Sequential(nn.Linear(84,5),nn.Softmax())
 
     def forward(self, x):
-        # x = self.resize(x)
         x=x.reshape(-1,560)
         x = self.layer1(x)
         x = self.layer2(x)
