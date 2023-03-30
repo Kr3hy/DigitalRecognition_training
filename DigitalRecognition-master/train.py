@@ -14,6 +14,8 @@ from config.global_config import global_config
 from data.dataset import NumberDataset
 from data.classes import NUMBER_CLASSES
 from model.fcnet import Net
+from tools import evaluator
+from tools.evaluator import evaluate
 
 @torch.no_grad()
 def test(model, test_dataloader, model_save_path, writer, ep):
@@ -29,7 +31,7 @@ def test(model, test_dataloader, model_save_path, writer, ep):
         # print("output")
         # print(output)
         # # # print(output)
-        # # print(torch.sum(torch.max(output[0], dim=1)[-1]))
+        # print(torch.sum(torch.max(output, dim=1)[-1]))
         # print(output[0]) #row
         # print(torch.max(output[0], dim=1))
         # print(torch.max(output[0], dim=1)[-1])
@@ -42,10 +44,6 @@ def test(model, test_dataloader, model_save_path, writer, ep):
         #output=output.squeeze()
 
         correct_num += torch.sum(torch.max(output, dim=1)[-1] == torch.max(label, dim=1)[-1])
-    # print("-------------------")
-    # print(correct_num)
-    # print(len(test_dataloader.dataset))
-    # print("-------------------")
     precision = correct_num / len(test_dataloader.dataset)
     # #len (test_dataloader.dataset)=640
     print(f"Test precision is {precision}\n")
@@ -56,7 +54,7 @@ g_precision=0
 g_precision_list=[]
 
 @torch.enable_grad()
-def train(model, dataloader, test_dataloader, epoch, writer,g_precision,precision_list):
+def train(model, dataloader, test_dataloader,eval_dataloader, epoch, writer,g_precision,precision_list):
     # test_model = copy.deepcopy(model)
     # test_model.to(torch.device(global_config.DEVICE))
     model_save_path = Path.cwd() / "model_params"
@@ -64,7 +62,7 @@ def train(model, dataloader, test_dataloader, epoch, writer,g_precision,precisio
         Path.mkdir(model_save_path)
     model_save_path = model_save_path / (global_config.MODEL_NAME + '.pt')
     # optim = SGD(model.parameters(), 0.2) #lr
-    optim = Adam(model.parameters(),0.008)
+    optim = Adam(model.parameters(),global_config.LR())
     epoch_loop = tqdm(range(epoch), total=epoch)
     train_count = 1  # 用于计算runtime_loss
     print(model_save_path)
@@ -77,13 +75,6 @@ def train(model, dataloader, test_dataloader, epoch, writer,g_precision,precisio
             optim.zero_grad()
             output = model(img)
             output = output.squeeze()
-            # print("output")
-            # print(output)
-            # print("label")
-            # print(label)
-            # print(output)
-            # output=output.reshape(1,output.shape[0])  #if batch size is 1
-            # print(output)
             loss = ont_hot_cross_entropy(output, label)
             loss.backward()
             optim.step()
@@ -93,12 +84,6 @@ def train(model, dataloader, test_dataloader, epoch, writer,g_precision,precisio
                 writer.add_scalar('Loss', runtime_loss, train_count)
                 runtime_loss = 0
             correct_num += torch.sum(torch.max(output, dim=1)[-1] == torch.max(label, dim=1)[-1])
-            # print("torch.max(output,dim=1)[-1]")
-            # print(torch.max(output, dim=0)[-1])
-            # print(output)
-            # print("torch.max(label, dim=0)[-1]")
-            # print(torch.max(label, dim=0)[-1])
-            # print(label)
             train_count += 1
         precision = correct_num / len(dataloader.dataset)
         precision_list.append(precision)
@@ -111,10 +96,16 @@ def train(model, dataloader, test_dataloader, epoch, writer,g_precision,precisio
             print("good precision!")
             g_precision=precision
             # print(f"Successfully save model_params state.\n")
-            test_model = copy.deepcopy(model)
-            test_model.to(torch.device(global_config.DEVICE))
-            test(test_model, test_dataloader, model_save_path, writer, ep)
+            # test_model = copy.deepcopy(model)
+            # test_model.to(torch.device(global_config.DEVICE))
+            # test(test_model, test_dataloader, model_save_path, writer, ep)
+        if ep%3==0 :
+            map_net = Net().to(global_config.DEVICE)
+            evaluator.evaluate(map_net, eval_dataloader, str(model_save_path))
+        map_net = Net().to(global_config.DEVICE)
+        evaluator.evaluate(map_net, eval_dataloader, str(model_save_path))
 
+        
 if __name__ == '__main__':
     root_path = global_config.DATASET_PATH
     # v2model = MobileNetv2(wid_mul=1, output_channels=NUMBER_CLASSES).to(global_config.DEVICE)
@@ -123,18 +114,20 @@ if __name__ == '__main__':
     # pretrained_model=torch.load('weights/mobilenet_v3_large_pretrained.pth',map_location=global_config.DEVICE)
     # pre_dict={k: v for k, v in pretrained_model.items() if v3model.state_dict()[k].numel() == v.numel()}
     # missing_keys, unexpected_keys = v3model.load_state_dict(pre_dict, strict=False)
-
     fcmodel=Net().to(global_config.DEVICE)
 
     dataset = NumberDataset(root_path, input_size=global_config.INPUT_SIZE, classes_num=NUMBER_CLASSES) #phase="train"
     test_dataset = NumberDataset(root_path, classes_num=global_config.CLASSES_NUM, input_size=global_config.INPUT_SIZE, phase="test")
+    eval_dataset=NumberDataset(root_path,classes_num=global_config.CLASSES_NUM,input_size=global_config.INPUT_SIZE,phase="eval")
     training_config = {
         "batch_size":8,
-        "epoch": 3
+        "epoch": 6
     }
     dataloader = DataLoader(dataset, training_config['batch_size'], True)
     test_dataloader = DataLoader(test_dataset, 1, True)
+    eval_dataloader=DataLoader(eval_dataset,1,True)
     writer = SummaryWriter()
-    train(fcmodel, dataloader, test_dataloader, training_config['epoch'], writer, g_precision, g_precision_list)
+    train(fcmodel, dataloader, test_dataloader,eval_dataloader, training_config['epoch'], writer, g_precision, g_precision_list)
+
     print(g_precision_list)
     print("end training!")

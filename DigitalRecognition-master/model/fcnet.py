@@ -19,7 +19,7 @@ class Net(nn.Module):
         self.layer1 = nn.Sequential(
             nn.Linear(in_features=20*28,out_features=256),nn.ReLU()) # 1680# 560#??? not 560???  that s causes by channels problem
         self.layer2 = nn.Sequential(nn.Linear(in_features=256, out_features=84), nn.ReLU())
-        self.layer3 = nn.Sequential(nn.Linear(in_features=84,out_features=6)
+        self.layer3 = nn.Sequential(nn.Linear(in_features=84,out_features=global_config.CLASSES_NUM)
                                     # ,nn.Softmax(dim=0)
                                     )  # 最后一层接Softmax所以不需要ReLU激活
         # self.layer4=nn.Sequential(nn.Linear(84,5),nn.Softmax())

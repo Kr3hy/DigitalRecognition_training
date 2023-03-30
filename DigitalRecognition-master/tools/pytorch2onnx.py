@@ -12,7 +12,7 @@ from model.fcnet import Net
 
 def convert_ONNX(model, param_dir, input_size:tuple):
     # param_file = Path(param_dir) / (global_config.MODEL_NAME + '.pt')
-    param_file=r"H:\DigitalRecognition-master\model_params\fc.pt"
+    param_file="H:/DigitalRecognition-master/model_params" + "/" + global_config.MODEL_NAME + ".pt"
     model_params = torch.load(param_file)
     model.load_state_dict(model_params)#['state']
     # model.load_state_dict()
